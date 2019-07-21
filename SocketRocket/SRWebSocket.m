@@ -1097,7 +1097,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
         if (!_failed) {
             [self.delegateController performDelegateBlock:^(id<SRWebSocketDelegate>  _Nullable delegate, SRDelegateAvailableMethods availableMethods) {
                 if (availableMethods.didCloseWithCode) {
-                    [delegate webSocket:self didCloseWithCode:self->_closeCode reason:_closeReason wasClean:YES];
+                    [delegate webSocket:self didCloseWithCode:self->_closeCode reason:self->_closeReason wasClean:YES];
                 }
             }];
         }
@@ -1471,7 +1471,7 @@ static const size_t SRFrameHeaderOverhead = 32;
                         [self _scheduleCleanup];
                     }
 
-                    if (!self->_sentClose && !_failed) {
+                    if (!self->_sentClose && !self->_failed) {
                         self->_sentClose = YES;
                         // If we get closed in this state it's probably not clean because we should be sending this when we send messages
                         [self.delegateController performDelegateBlock:^(id<SRWebSocketDelegate>  _Nullable delegate, SRDelegateAvailableMethods availableMethods) {
