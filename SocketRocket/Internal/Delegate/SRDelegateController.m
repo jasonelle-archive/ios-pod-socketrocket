@@ -47,7 +47,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)setDelegate:(id<SRWebSocketDelegate> _Nullable)delegate
 {
     dispatch_barrier_async(self.accessQueue, ^{
-        _delegate = delegate;
+        self->_delegate = delegate;
 
         self.availableDelegateMethods = (SRDelegateAvailableMethods){
             .didReceiveMessage = [delegate respondsToSelector:@selector(webSocket:didReceiveMessage:)],

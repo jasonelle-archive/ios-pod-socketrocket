@@ -362,7 +362,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
     // Schedule to run on a work queue, to make sure we don't run this inline and deallocate `self` inside `SRProxyConnect`.
     // TODO: (nlutsenko) Find a better structure for this, maybe Bolts Tasks?
     dispatch_async(_workQueue, ^{
-        _proxyConnect = nil;
+        self->_proxyConnect = nil;
     });
 }
 
@@ -431,7 +431,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
     }
 
     [self _readUntilHeaderCompleteWithCallback:^(SRWebSocket *socket,  NSData *data) {
-        CFHTTPMessageAppendBytes(_receivedHTTPHeaders, (const UInt8 *)data.bytes, data.length);
+        CFHTTPMessageAppendBytes(self->_receivedHTTPHeaders, (const UInt8 *)data.bytes, data.length);
 
         if (CFHTTPMessageIsHeaderComplete(_receivedHTTPHeaders)) {
             SRDebugLog(@"Finished reading headers %@", CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(_receivedHTTPHeaders)));
