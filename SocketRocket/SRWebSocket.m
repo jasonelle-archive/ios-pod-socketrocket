@@ -676,7 +676,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
         if (availableMethods.didReceivePing) {
             [delegate webSocket:self didReceivePingWithData:data];
         }
-        dispatch_async(_workQueue, ^{
+        dispatch_async(self->_workQueue, ^{
             [self _sendFrameWithOpcode:SROpCodePong data:data];
         });
     }];
@@ -977,7 +977,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
             return;
         }
 
-        size_t extra_bytes_needed = header.masked ? sizeof(_currentReadMaskKey) : 0;
+        size_t extra_bytes_needed = header.masked ? sizeof(self->_currentReadMaskKey) : 0;
 
         if (header.payload_length == 126) {
             extra_bytes_needed += sizeof(uint16_t);
@@ -1015,7 +1015,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
                 }
 
                 if (header.masked) {
-                    assert(mapped_size >= sizeof(_currentReadMaskOffset) + offset);
+                    assert(mapped_size >= sizeof(self->_currentReadMaskOffset) + offset);
                     memcpy(eself->_currentReadMaskKey, ((uint8_t *)mapped_buffer) + offset, sizeof(eself->_currentReadMaskKey));
                 }
 
@@ -1030,12 +1030,12 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
     dispatch_async(_workQueue, ^{
         // Don't reset the length, since Apple doesn't guarantee that this will free the memory (and in tests on
         // some platforms, it doesn't seem to, effectively causing a leak the size of the biggest frame so far).
-        _currentFrameData = [[NSMutableData alloc] init];
+        self->_currentFrameData = [[NSMutableData alloc] init];
 
-        _currentFrameOpcode = 0;
-        _currentFrameCount = 0;
-        _readOpCount = 0;
-        _currentStringScanPosition = 0;
+        self->_currentFrameOpcode = 0;
+        self->_currentFrameCount = 0;
+        self->_readOpCount = 0;
+        self->_currentStringScanPosition = 0;
 
         [self _readFrameContinue];
     });
@@ -1052,7 +1052,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
 
         dispatch_data_t dataToSend = dispatch_data_create_subrange(_outputBuffer, _outputBufferOffset, dataLength - _outputBufferOffset);
         dispatch_data_apply(dataToSend, ^bool(dispatch_data_t region, size_t offset, const void *buffer, size_t size) {
-            NSInteger sentLength = [_outputStream write:buffer maxLength:size];
+            NSInteger sentLength = [self->_outputStream write:buffer maxLength:size];
             if (sentLength == -1) {
                 streamFailed = YES;
                 return false;
@@ -1097,7 +1097,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
         if (!_failed) {
             [self.delegateController performDelegateBlock:^(id<SRWebSocketDelegate>  _Nullable delegate, SRDelegateAvailableMethods availableMethods) {
                 if (availableMethods.didCloseWithCode) {
-                    [delegate webSocket:self didCloseWithCode:_closeCode reason:_closeReason wasClean:YES];
+                    [delegate webSocket:self didCloseWithCode:self->_closeCode reason:_closeReason wasClean:YES];
                 }
             }];
         }
@@ -1159,7 +1159,7 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
 
     // Cleanup selfRetain in the same GCD queue as usual
     dispatch_async(_workQueue, ^{
-        _selfRetain = nil;
+        self->_selfRetain = nil;
     });
 }
 
@@ -1262,7 +1262,7 @@ static const char CRLFCRLFBytes[] = {'\r', '\n', '\r', '\n'};
 
         if (consumer.readToCurrentFrame) {
             dispatch_data_apply(slice, ^bool(dispatch_data_t region, size_t offset, const void *buffer, size_t size) {
-                [_currentFrameData appendBytes:buffer length:size];
+                [self->_currentFrameData appendBytes:buffer length:size];
                 return true;
             });
 
@@ -1471,8 +1471,8 @@ static const size_t SRFrameHeaderOverhead = 32;
                         [self _scheduleCleanup];
                     }
 
-                    if (!_sentClose && !_failed) {
-                        _sentClose = YES;
+                    if (!self->_sentClose && !_failed) {
+                        self->_sentClose = YES;
                         // If we get closed in this state it's probably not clean because we should be sending this when we send messages
                         [self.delegateController performDelegateBlock:^(id<SRWebSocketDelegate>  _Nullable delegate, SRDelegateAvailableMethods availableMethods) {
                             if (availableMethods.didCloseWithCode) {
