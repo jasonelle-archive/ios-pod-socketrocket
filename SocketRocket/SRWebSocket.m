@@ -433,8 +433,8 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
     [self _readUntilHeaderCompleteWithCallback:^(SRWebSocket *socket,  NSData *data) {
         CFHTTPMessageAppendBytes(self->_receivedHTTPHeaders, (const UInt8 *)data.bytes, data.length);
 
-        if (CFHTTPMessageIsHeaderComplete(_receivedHTTPHeaders)) {
-            SRDebugLog(@"Finished reading headers %@", CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(_receivedHTTPHeaders)));
+        if (CFHTTPMessageIsHeaderComplete(self->_receivedHTTPHeaders)) {
+            SRDebugLog(@"Finished reading headers %@", CFBridgingRelease(CFHTTPMessageCopyAllHeaderFields(self->_receivedHTTPHeaders)));
             [self _HTTPHeadersDidFinish];
         } else {
             [self _readHTTPHeader];
@@ -550,7 +550,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
     // Need to shunt this on the _callbackQueue first to see if they received any messages
     [self.delegateController performDelegateQueueBlock:^{
         [self closeWithCode:SRStatusCodeProtocolError reason:message];
-        dispatch_async(_workQueue, ^{
+        dispatch_async(self->_workQueue, ^{
             [self closeConnection];
         });
     }];
@@ -560,7 +560,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 {
     dispatch_async(_workQueue, ^{
         if (self.readyState != SR_CLOSED) {
-            _failed = YES;
+            self->_failed = YES;
             [self.delegateController performDelegateBlock:^(id<SRWebSocketDelegate>  _Nullable delegate, SRDelegateAvailableMethods availableMethods) {
                 if (availableMethods.didFailWithError) {
                     [delegate webSocket:self didFailWithError:error];
